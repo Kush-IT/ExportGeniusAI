@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: exportgenius_db
+    environment:
+      POSTGRES_DB: exportgenius
+      POSTGRES_USER: genius_user
+      POSTGRES_PASSWORD: genius_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/1-schema.sql
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/2-seed.sql
+    restart: always
+
+  ai-service:
+    build:
+      context: ./ai-service
+    container_name: exportgenius_ai_service
+    environment:
+      - DATABASE_URL=postgresql://genius_user:genius_password@db:5432/exportgenius
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    restart: always
+
+  backend:
+    build:
+      context: ./backend
+    container_name: exportgenius_backend
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/exportgenius
+      - SPRING_DATASOURCE_USERNAME=genius_user
+      - SPRING_DATASOURCE_PASSWORD=genius_password
+      - AI_SERVICE_URL=http://ai-service:8000
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - ai-service
+    restart: always
+
+volumes:
+  pgdata:

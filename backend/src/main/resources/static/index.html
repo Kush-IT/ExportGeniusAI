@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExportGenius AI - Trade Brokerage Platform</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="nav-container">
+            <div class="logo-group">
+                <div class="logo-icon">EG</div>
+                <div class="logo-text">ExportGenius AI</div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="nav-actions">
+                <!-- Guest Area -->
+                <div id="guest-nav" class="hidden">
+                    <span style="font-size:0.85rem; color:var(--text-muted);">Trade Brokerage Console</span>
+                </div>
+
+                <!-- User Area -->
+                <div id="user-nav" class="hidden" style="display:flex; align-items:center; gap:16px;">
+                    <div style="position:relative;">
+                        <button class="btn btn-secondary" id="notif-btn" style="position:relative; padding:8px 12px;">
+                            🔔 Notifications <span id="notif-badge-icon" class="notif-badge hidden">0</span>
+                        </button>
+                        <!-- Dropdown list -->
+                        <div id="notif-dropdown" class="glass-panel hidden" style="position:absolute; top:45px; right:0; width:300px; padding:0; overflow:hidden; z-index:200;">
+                            <div style="padding:12px; border-bottom:1px solid var(--border-color); font-weight:700; font-size:0.9rem;">Alerts</div>
+                            <div id="notif-items-list" style="max-height:250px; overflow-y:auto;"></div>
+                        </div>
+                    </div>
+                    <span id="user-role-display" class="role-badge">IMPORTER</span>
+                    <button class="btn btn-secondary" onclick="logout()">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main>
+        
+        <!-- ================= AUTH PORTAL ================= -->
+        <div id="auth-portal" class="auth-container glass-panel hidden">
+            <div class="portal-switch-bar">
+                <div class="portal-tab active" id="login-tab">Sign In</div>
+                <div class="portal-tab" id="register-tab">Sign Up</div>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form-box" onsubmit="event.preventDefault(); handleLogin(this.email.value, this.password.value);">
+                <h3 style="margin-bottom:20px; font-weight:600;">Welcome Back</h3>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" name="email" class="form-control" placeholder="name@company.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px;">Sign In</button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form-box" class="hidden" onsubmit="event.preventDefault(); handleRegister(this.fullName.value, this.email.value, this.password.value, this.role.value);">
+                <h3 style="margin-bottom:20px; font-weight:600;">Create Trade Account</h3>
+                <div class="form-group">
+                    <label>Full Name / Corporate Representative</label>
+                    <input type="text" name="fullName" class="form-control" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" name="email" class="form-control" placeholder="name@company.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" class="form-control" placeholder="••••••••" minlength="6" required>
+                </div>
+                <div class="form-group">
+                    <label>Select Trade Role</label>
+                    <select name="role" class="form-control">
+                        <option value="IMPORTER">Importer (Buyer)</option>
+                        <option value="EXPORTER">Exporter (Supplier)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px;">Create Account</button>
+            </form>
+        </div>
+
+        <!-- ================= IMPORTER PORTAL ================= -->
+        <div id="importer-portal" class="dashboard-grid hidden">
+            <!-- Sidebar -->
+            <div class="dashboard-sidebar">
+                <div class="sidebar-link active" data-section="importer-overview" onclick="loadImporterOverview()"> Sourcing Requirements</div>
+                <div class="sidebar-link" data-section="importer-post-req" onclick="showSection('importer-portal', 'importer-post-req')"> Post Requirement</div>
+            </div>
+
+            <!-- Content Workspace -->
+            <div class="glass-panel" style="flex-grow:1;">
+                
+                <!-- Section 1: Overview -->
+                <div id="importer-overview" class="portal-section">
+                    <h3 style="margin-bottom:20px;">Sourcing Requirements</h3>
+                    <div id="importer-reqs-list"></div>
+                </div>
+
+                <!-- Section 2: Post Sourcing Form -->
+                <div id="importer-post-req" class="portal-section hidden">
+                    <h3 style="margin-bottom:20px;">Post Sourcing Requirement</h3>
+                    <form onsubmit="event.preventDefault(); handleCreateRequirement({ productType: this.productType.value, quantity: parseInt(this.qty.value), destinationCountry: this.country.value }); this.reset();">
+                        <div class="form-group">
+                            <label>Product Sourcing Category / Type</label>
+                            <input type="text" name="productType" class="form-control" placeholder="e.g. Silk Yarn" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Target Quantity</label>
+                            <input type="number" name="qty" class="form-control" placeholder="e.g. 500" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Destination Country</label>
+                            <input type="text" name="country" class="form-control" placeholder="e.g. Germany" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Post Requirement</button>
+                    </form>
+                </div>
+
+                <!-- Section 3: Sourcing Deals matches -->
+                <div id="importer-deals" class="portal-section hidden">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h3>Generated Quotes</h3>
+                        <button class="btn btn-secondary" onclick="loadImporterOverview()">← Back</button>
+                    </div>
+                    <div id="importer-deals-list"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ================= EXPORTER PORTAL ================= -->
+        <div id="exporter-portal" class="dashboard-grid hidden">
+            <!-- Sidebar -->
+            <div class="dashboard-sidebar">
+                <div class="sidebar-link active" data-section="exporter-overview" onclick="loadExporterOverview()"> Catalogue Items</div>
+                <div class="sidebar-link" data-section="exporter-deals" onclick="loadExporterDeals()"> matched Deals</div>
+                <div class="sidebar-link" data-section="exporter-upload-item" onclick="showSection('exporter-portal', 'exporter-upload-item')"> Upload Listing</div>
+            </div>
+
+            <!-- Content -->
+            <div class="glass-panel" style="flex-grow:1;">
+                
+                <!-- Section 1: Catalogue Overview -->
+                <div id="exporter-overview" class="portal-section">
+                    <h3 style="margin-bottom:20px;">Catalogue Items</h3>
+                    <div id="exporter-items-list"></div>
+                </div>
+
+                <!-- Section 2: Upload catalogue -->
+                <div id="exporter-upload-item" class="portal-section hidden">
+                    <h3 style="margin-bottom:20px;">Upload Catalogue Listing</h3>
+                    <form onsubmit="event.preventDefault(); 
+                        const fd = new FormData();
+                        fd.append('title', this.title.value);
+                        fd.append('hsCode', this.hsCode.value);
+                        fd.append('supplyPrice', this.price.value);
+                        fd.append('moq', this.moq.value);
+                        fd.append('leadTimeDays', this.leadTime.value);
+                        fd.append('categoryId', this.category.value);
+                        if(this.image.files[0]) fd.append('images', this.image.files[0]);
+                        handleCreateCatalogueItem(fd);
+                        this.reset();">
+                        <div class="form-group">
+                            <label>Product Title</label>
+                            <input type="text" name="title" class="form-control" placeholder="e.g. Silk Yarn" required>
+                        </div>
+                        <div class="form-group">
+                            <label>HS Code</label>
+                            <input type="text" name="hsCode" class="form-control" placeholder="e.g. 500200" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Supply Price ($)</label>
+                            <input type="number" step="0.01" name="price" class="form-control" placeholder="e.g. 12.50" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Minimum Order Quantity (MOQ)</label>
+                            <input type="number" name="moq" class="form-control" placeholder="e.g. 50" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Lead Time (Days)</label>
+                            <input type="number" name="leadTime" class="form-control" placeholder="e.g. 10" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Select Category ID</label>
+                            <select name="category" class="form-control">
+                                <option value="1">Textiles</option>
+                                <option value="2">Electronics</option>
+                                <option value="3">Spices</option>
+                                <option value="4">Handicrafts</option>
+                                <option value="5">Chemicals</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Product Image</label>
+                            <input type="file" name="image" class="form-control" accept="image/*">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Publish Listing</button>
+                    </form>
+                </div>
+
+                <!-- Section 3: Deals lists -->
+                <div id="exporter-deals" class="portal-section hidden">
+                    <h3 style="margin-bottom:20px;">Matched Deals</h3>
+                    <div id="exporter-deals-list"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ================= ADMIN PORTAL ================= -->
+        <div id="admin-portal" class="dashboard-grid hidden">
+            <!-- Sidebar -->
+            <div class="dashboard-sidebar">
+                <div class="sidebar-link active" data-section="admin-overview" onclick="loadAdminOverview()"> Sourcing Kanban</div>
+                <div class="sidebar-link" data-section="admin-reports" onclick="loadAdminReports()"> margin report</div>
+            </div>
+
+            <!-- Content -->
+            <div class="glass-panel" style="flex-grow:1;">
+                
+                <!-- Section 1: Kanban board & Health indicator -->
+                <div id="admin-overview" class="portal-section">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+                        <h3>Sourcing Pipeline</h3>
+                        <span id="ai-health-badge" class="role-badge" style="background: rgba(20, 184, 166, 0.15); color: #2dd4bf;">AI Service: CLOSED</span>
+                    </div>
+
+                    <!-- Statistics counters -->
+                    <div class="stats-row">
+                        <div class="stat-card">
+                            <div class="stat-title">SOURCING</div>
+                            <div class="stat-val" id="stat-sourcing">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-title">QUOTED</div>
+                            <div class="stat-val" id="stat-quoted">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-title">PAID</div>
+                            <div class="stat-val" id="stat-paid">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-title">DISPATCHED</div>
+                            <div class="stat-val" id="stat-dispatched">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Kanban Columns -->
+                    <div class="kanban-board">
+                        <div class="kanban-column">
+                            <div class="column-header">Sourcing</div>
+                            <div id="col-sourcing"></div>
+                        </div>
+                        <div class="kanban-column">
+                            <div class="column-header">Quoted</div>
+                            <div id="col-quoted"></div>
+                        </div>
+                        <div class="kanban-column">
+                            <div class="column-header">Negotiating</div>
+                            <div id="col-negotiating"></div>
+                        </div>
+                        <div class="kanban-column">
+                            <div class="column-header">Confirmed</div>
+                            <div id="col-confirmed"></div>
+                        </div>
+                        <div class="kanban-column">
+                            <div class="column-header">Dispatched</div>
+                            <div id="col-dispatched"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Margin Report -->
+                <div id="admin-reports" class="portal-section hidden">
+                    <h3 style="margin-bottom:20px;">Net Margin Summary</h3>
+                    
+                    <div class="stats-row">
+                        <div class="stat-card">
+                            <div class="stat-title">TOTAL COLLECTED</div>
+                            <div class="stat-val" id="rep-collected">$0.00</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-title">TOTAL EXPORTER PAYOUTS</div>
+                            <div class="stat-val" id="rep-payouts">$0.00</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-title">NET BROKERAGE MARGIN</div>
+                            <div class="stat-val" id="rep-net" style="color: var(--teal);">$0.00</div>
+                        </div>
+                    </div>
+
+                    <!-- SVG Chart box -->
+                    <div class="stat-card" id="reports-chart-container" style="background:rgba(255,255,255,0.01); display:flex; justify-content:center; align-items:center;">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- Importer Deal Modal -->
+    <div id="importer-deal-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="importer-deal-title">Deal Quote</h3>
+                <span class="modal-close" style="cursor:pointer; font-size:1.5rem;">&times;</span>
+            </div>
+            <div style="margin-bottom:20px; font-size:0.9rem; line-height:1.6;">
+                <div>Stage: <strong id="importer-deal-status" style="color:var(--primary);">QUOTED</strong></div>
+                <div>Proposed Unit Price: <strong>$<span id="importer-deal-price">0.00</span></strong></div>
+                <div>Quantity: <strong id="importer-deal-qty">0</strong></div>
+                <div style="margin-top:10px; font-size:1.1rem;">Total Cost: <strong>$<span id="importer-deal-total">0.00</span></strong></div>
+            </div>
+            
+            <!-- Docs lists -->
+            <div style="margin-bottom:20px; border-top:1px solid var(--border-color); padding-top:15px;">
+                <h4 style="margin-bottom:10px;">Trade Paperwork</h4>
+                <div id="importer-deal-docs"></div>
+            </div>
+
+            <div id="importer-deal-actions" style="margin-top:20px; display:flex; justify-content:flex-end;"></div>
+        </div>
+    </div>
+
+    <!-- Exporter Deal Modal -->
+    <div id="exporter-deal-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="exporter-deal-title">Trade Matched</h3>
+                <span class="modal-close" style="cursor:pointer; font-size:1.5rem;">&times;</span>
+            </div>
+            <div style="margin-bottom:20px; font-size:0.9rem; line-height:1.6;">
+                <div>Stage: <strong id="exporter-deal-status" style="color:var(--primary);">PAID</strong></div>
+                <div>Unit Sourcing Price: <strong>$<span id="exporter-deal-price">0.00</span></strong></div>
+                <div>Quantity: <strong id="exporter-deal-qty">0</strong></div>
+                <div style="margin-top:10px; font-size:1.1rem;">Total payout: <strong>$<span id="exporter-deal-total">0.00</span></strong></div>
+            </div>
+
+            <!-- PO listing -->
+            <div style="margin-bottom:20px; border-top:1px solid var(--border-color); padding-top:15px;">
+                <h4 style="margin-bottom:10px;">Purchase Order Document</h4>
+                <div id="exporter-deal-docs"></div>
+            </div>
+
+            <div id="exporter-deal-actions" style="margin-top:20px;"></div>
+        </div>
+    </div>
+
+    <!-- Admin Deal Modal -->
+    <div id="admin-deal-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="admin-deal-title">Broker Quoting Panel</h3>
+                <span class="modal-close" style="cursor:pointer; font-size:1.5rem;">&times;</span>
+            </div>
+            <div style="margin-bottom:15px; font-size:0.9rem;">
+                <div>Stage: <strong id="admin-deal-status">SOURCING</strong></div>
+                <div>Exporter Supply Price: <strong>$<span id="admin-deal-supply">0.00</span></strong></div>
+                <div>Quantity: <strong id="admin-deal-qty">0</strong></div>
+            </div>
+
+            <!-- Quote slider panel -->
+            <div id="admin-quote-panel" class="quote-slider-box hidden">
+                <div class="range-label">
+                    <span>AI Suggested Sell Price:</span>
+                    <strong id="ai-suggested-price">$0.00</strong>
+                </div>
+                <div class="range-label" style="margin-top:10px;">
+                    <span>Adjust Sell Price:</span>
+                    <strong id="slider-val-display">$0.00</strong>
+                </div>
+                <input type="range" id="sell-price-slider" class="range-input" oninput="updateSliderMetrics(this.value)">
+                
+                <div class="range-label">
+                    <span>Calculated Margin Percent:</span>
+                    <strong id="calculated-margin-pct" style="color:var(--teal);">0%</strong>
+                </div>
+                
+                <!-- Warnings -->
+                <p id="min-margin-warning" class="hidden" style="color:var(--red); font-size:0.8rem; margin-top:8px;">⚠️ Warning: Margin is below application minimum requirement of 15%.</p>
+            </div>
+
+            <!-- Action buttons -->
+            <div id="admin-stage-actions" style="margin-top:20px;"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

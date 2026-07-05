@@ -1,0 +1,53 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/exportgenius}
+    username: ${DATABASE_USERNAME:genius_user}
+    password: ${DATABASE_PASSWORD:genius_password}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:test@exportgenius.ai}
+    password: ${MAIL_PASSWORD:testpassword}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+jwt:
+  secret: ${JWT_SECRET:9a4f2c8d3b7a5e1f6c8d9a0b2c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d}
+  access-expiration: ${JWT_ACCESS_EXPIRATION:86400000} # 24 hours in ms
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000} # 7 days in ms
+
+deal:
+  minimum-margin-pct: ${DEAL_MINIMUM_MARGIN:0.15}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      pricingService:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30000ms
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowType: COUNT_BASED
+  timelimiter:
+    instances:
+      pricingService:
+        timeoutDuration: 2s
+        cancelRunningFuture: true
+
+logging:
+  level:
+    org.springframework.security: INFO
+    org.hibernate.SQL: DEBUG

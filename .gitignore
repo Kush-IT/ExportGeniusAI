@@ -1,0 +1,25 @@
+# Maven build outputs
+target/
+*.jar
+*.class
+
+# Python virtual environments & caching
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+*.pkl
+training_deals.csv
+
+# IDE metadata
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Local disk storage uploads
+uploads/
+backend/uploads/
+*.log
