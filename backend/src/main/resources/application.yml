@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/exportgenius}
-    username: ${DATABASE_USERNAME:genius_user}
-    password: ${DATABASE_PASSWORD:genius_password}
+    url: ${DATABASE_URL:jdbc:postgresql://db.wlqlwdswhmrvbmxaqxey.supabase.co:5432/postgres}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:kush@patel06}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

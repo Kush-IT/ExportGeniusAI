@@ -23,7 +23,7 @@ else:
 # Database setup
 DATABASE_URL = os.environ.get(
     "DATABASE_URL", 
-    "postgresql://genius_user:genius_password@localhost:5432/exportgenius"
+    "postgresql://postgres:kush%40patel06@db.wlqlwdswhmrvbmxaqxey.supabase.co:5432/postgres"
 )
 
 db_connected = False
